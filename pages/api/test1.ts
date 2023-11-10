@@ -11,7 +11,7 @@ export default async function handler(
 ) {
   const inputText = req.query.inputText as string; // Retrieve inputText from query parameters
   if (!inputText) {
-    res.status(400).json({ error: 'Missing inputText parameter' });
+    res.status(400).json({ error: "Missing inputText parameter" });
     return;
   }
 
@@ -20,7 +20,7 @@ export default async function handler(
     res.status(200).json(output);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred' });
+    res.status(500).json({ error: "An error occurred" });
   }
 }
 

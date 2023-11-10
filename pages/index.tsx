@@ -1,210 +1,280 @@
-import React, { useEffect, useRef } from 'react';
-import { Matter, Engine, Render, Runner, Body, MouseConstraint, Mouse, World, Bodies, Events } from 'matter-js';
+import React, { useEffect, useRef, useState } from 'react';
+import { Engine, Render, Runner, Body, MouseConstraint, Composite, Mouse, World, Bodies, Events } from 'matter-js';
+import SpeechRecognition from "components/SpeechRecognition"
+import useStaticSWR from 'components/useStaticSWR'
 
 export default function Home() {
+  const pixelRatio = 2;
   const containerRef = useRef(null);
+  const engineRef = useRef(null);
+  const bigRectangleRef = useRef(null);
+  const [renderInstance, setRenderInstance] = useState(null);
+  const [fontSize, setFontSize] = useState(null);
+  const { data: inputQuery, mutate } = useStaticSWR("inputText", '');
+
+
+  const coreDesires = ["挑戦欲", "優越欲", "刺激欲", "承認欲", "奉仕欲", "自主欲", "維持欲", "安全欲"]
+  useEffect(() => {
+    if (!renderInstance || !inputQuery) return;
+    const { world } = engineRef.current;
+    Composite.clear(world, false);
+    bigRectangleRef.current = null;
+    const abortController = new AbortController();
+    coreDesires.forEach(async (desire) => {
+      try {
+        const response = await fetch(
+          `/api/functions_calling_example?core_desire=${desire}&input=${inputQuery}`,
+          { signal: abortController.signal }
+        );
+        const data = await response.json();
+        createCircles(data, engineRef.current, renderInstance, fontSize, addSmallRectangle);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error(error);
+        }
+      }
+    });
+
+    return () => {
+      abortController.abort();
+    };
+  }, [inputQuery]);
+
+
   useEffect(() => {
     if (!containerRef.current) return;
-    // Create engine (physical simulation) and renderer (drawing)
     const engine = Engine.create();
-    const { world } = engine;
-
-    // Function to adjust canvas size on window resize
-    function resizeCanvas() {
-      const canvas = render.canvas;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    engineRef.current = engine
+    const fontSize = {
+      big: calculateFontSize(4),
+      medium: calculateFontSize(1.5),
+      small: calculateFontSize(1.5 * .8),
+    }
+    setFontSize(fontSize)
+    function calculateFontSize(percentage) {
+      return document.documentElement.clientWidth * pixelRatio * percentage / 100;
     }
 
+    const width = Math.floor(document.documentElement.clientWidth * pixelRatio);
+    const height = Math.floor(document.documentElement.clientHeight * pixelRatio);
     const render = Render.create({
       element: containerRef.current,
       engine: engine,
       options: {
-        width: 800,
-        height: 600,
+        width: width,
+        height: height,
         wireframes: false,
-        background: 'linear-gradient(to bottom, #87ceeb, #439ad9)'
+        background: '#fff'
       }
     });
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
+    setRenderInstance(render);
     Render.run(render);
     Runner.run(Runner.create(), engine);
-
-    // フレームの四辺1.5倍の位置に壁を追加
-    const wallThickness = 100; // 壁の厚さ
-    const frameWidth = window.innerWidth;
-    const frameHeight = window.innerHeight;
-    const margin = 600;
-    const walls = [
-      Bodies.rectangle(frameWidth / 2, -margin,
-        frameWidth + wallThickness * 2, wallThickness, { isStatic: true }), // 上側の壁
-      Bodies.rectangle(frameWidth / 2, frameHeight + margin,
-        frameWidth + wallThickness * 2, wallThickness, { isStatic: true }), // 下側の壁
-      Bodies.rectangle(-margin, frameHeight / 2,
-        wallThickness, frameHeight + wallThickness * 2, { isStatic: true }), // 左側の壁
-      Bodies.rectangle(frameWidth + margin, frameHeight / 2,
-        wallThickness, frameHeight + wallThickness * 2, { isStatic: true }) // 右側の壁
-    ];
-    World.add(world, walls);
-
-    // 大きな円のサイズを設定
-    function createBigCircleSize() {
-      return Math.min(window.innerWidth, window.innerHeight) / 5;
-    }
-
-    // 小さな円を生成する関数
-    function createSmallCircle(x, y, radius) {
-      return Bodies.circle(x, y, radius, {
-        render: { fillStyle: 'rgba(250,250,250,.5)' } // 不透明のホワイトに設定
-      });
-    }
-
-    // 真ん中に大きな丸を追加
-    const bigCircleSize = createBigCircleSize();
-    let bigCircle = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, bigCircleSize, {
-      render: { fillStyle: 'rgba(250,250,250,.5)' } // 不透明のホワイトに設定
-    });
-    bigCircle.isStatic = true; // bigCircleを固定
-    World.add(world, bigCircle);
-
-    // 周囲に小さな丸を追加
-    let smallCircles = [];
-    for (let i = 0; i < 10; i++) {
-      const x = Math.random() * window.innerWidth;
-      const y = Math.random() * window.innerHeight;
-      const radius = bigCircleSize / 1.5;
-      const smallCircle = createSmallCircle(x, y, radius);
-      smallCircles.push(smallCircle);
-      World.add(world, smallCircle);
-    }
-    console.log(smallCircles)
-
-    // マウスで物体を操作するための制約を追加
-    const mouseConstraint = MouseConstraint.create(engine, {
-      mouse: Mouse.create(render.canvas)
-    });
-    World.add(world, mouseConstraint);
-
-    // クリックイベントを追加
-    Events.on(mouseConstraint, 'mousedown', function (event) {
-      const clickedBody = event.source.body;
-      if (!clickedBody) {
-        // クリックされた場所が物体上でない場合は処理をスキップ
-        return;
-      }
-
-      if (!clickedBody.isStatic && clickedBody !== bigCircle) {
-
-        // 他の円と大きな円を削除
-        Matter.Composite.remove(world, bigCircle);
-        for (let i = 0; i < smallCircles.length; i++) {
-          Matter.Composite.remove(world, smallCircles[i]);
-        }
-
-        // クリックした円を真ん中の大きな丸にする
-        const x = clickedBody.position.x;
-        const y = clickedBody.position.y;
-        const radius = createBigCircleSize();
-        bigCircle = Bodies.circle(x, y, radius, {
-          render: { fillStyle: 'rgba(250,250,250,.5)' } // 不透明のホワイトに設定
-        });
-        bigCircle.isStatic = true; // bigCircleを固定
-        World.add(world, bigCircle);
-
-        // 周りに新しい小さな丸を追加
-        smallCircles = [];
-        for (let i = 0; i < 10; i++) {
-          const x = Math.random() * window.innerWidth;
-          const y = Math.random() * window.innerHeight;
-          const radius = bigCircleSize / 1.5;
-          const smallCircle = createSmallCircle(x, y, radius);
-          smallCircles.push(smallCircle);
-          World.add(world, smallCircle);
-        }
-
-      }
-    });
-
-
-    // 重力を中心の大きな丸に向ける
     engine.world.gravity.scale = 0; // デフォルトの重力を無効化
     engine.world.gravity.x = 1; // 右に向ける
     engine.world.gravity.y = 0;
 
-    // テキストを表示するためのHTML要素を作成
-    function createTextElement(text, x, y) {
-      const textElement = document.createElement('div');
-      textElement.classList.add('text-element');
-      textElement.style.position = 'absolute';
-      textElement.style.left = x + 'px';
-      textElement.style.top = y + 'px';
-      textElement.textContent = text;
-      document.body.appendChild(textElement);
-      return textElement;
+    // ウインドウリサイズに伴う処理
+    resizeCanvas();
+    window.addEventListener('resize', handleResize);
+    function handleResize() {
+      resizeCanvas();
+      renderBackgroundGradient();
+      fontSize.big = calculateFontSize(4);
+      fontSize.medium = calculateFontSize(1.5);
+      setFontSize(fontSize)
+      if (bigRectangleRef.current == null) return;
+      Body.setPosition(bigRectangleRef.current, {
+        x: (document.documentElement.clientWidth / 2) * pixelRatio,
+        y: (document.documentElement.clientHeight / 2) * pixelRatio
+      });
+    }
+    function resizeCanvas() {
+      const canvas = render.canvas;
+      const width = Math.floor(document.documentElement.clientWidth * pixelRatio); //メモリ上における実際のサイズを設定（ピクセル密度の分だけ倍増させます）
+      const height = Math.floor(document.documentElement.clientHeight * pixelRatio);
+      canvas.width = width;
+      canvas.height = height;
+      render.options.width = width;
+      render.options.height = height;
+      canvas.style.width = document.documentElement.clientWidth + 'px';
+      canvas.style.height = document.documentElement.clientHeight + 'px';
     }
 
-    // 周りの小さな円のテキスト
-    const textElements = [];
-    for (let i = 0; i < smallCircles.length; i++) {
-      const smallCircle = smallCircles[i];
-      const smallCircleTextElement = createTextElement('Circle ' + (i + 1), smallCircle.position.x, smallCircle.position.y);
-      textElements.push(smallCircleTextElement);
+    function renderBackgroundGradient() {
+      const ctx = render.context;
+      const width = Math.floor(document.documentElement.clientWidth * pixelRatio);
+      const height = Math.floor(document.documentElement.clientHeight * pixelRatio);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const outerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
+
+      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
     }
 
+    // その他の処理
     Events.on(engine, 'afterUpdate', function () {
       for (let i = 0; i < engine.world.bodies.length; i++) {
         const body = engine.world.bodies[i];
-
         // 重力の強さを計算
-        const rotationForceMagnitude = 0.00003 * body.mass; // 右回転の力の強さ
-        const centerForceMagnitude = 0.0001 * body.mass; // 中心の円に対する引力の強さ
-
+        // const rotationForceMagnitude = 0.00001 * body.mass; // 右回転の力の強さ
+        const rotationForceMagnitude = 0;
+        const centerForceMagnitude = 0.001 * body.mass; // 中心の円に対する引力の強さ
         // 大きな丸の中心へのベクトルを計算
-        const dx = bigCircle.position.x - body.position.x;
-        const dy = bigCircle.position.y - body.position.y;
-
+        const dx = document.documentElement.clientWidth - body.position.x;
+        const dy = document.documentElement.clientHeight - body.position.y;
         // ベクトルを正規化
         const distance = Math.sqrt(dx * dx + dy * dy);
         const normalisedDx = dx / distance;
         const normalisedDy = dy / distance;
-
         // ベクトルを反転して右回転の力を適用
         Body.applyForce(body, body.position, {
           x: -rotationForceMagnitude * normalisedDy,
           y: rotationForceMagnitude * normalisedDx
         });
-
         // 中心の円に引力を適用
         Body.applyForce(body, body.position, {
           x: centerForceMagnitude * normalisedDx,
           y: centerForceMagnitude * normalisedDy
         });
 
-        // テキストの位置を更新
-        if (textElements[i]) { // Check if the text element exists
-          textElements[i].style.left = body.position.x - textElements[i].clientWidth / 2 + 'px';
-          textElements[i].style.top = body.position.y - textElements[i].clientHeight / 2 + 'px';
+        if (body.text) {
+          renderText(body.text.requested_action, { x: body.position.x, y: body.position.y }, fontSize.medium, true, render);
+          renderText(`${body.text.core_desire}｜${body.text.inner_need}`, {
+            x: body.position.x,
+            y: body.position.y - fontSize.medium * 1.3
+          }, fontSize.small, false, render);
         }
       }
+      renderBackgroundGradient();
+      // renderText(inputQuery, {
+      //   x: (document.documentElement.clientWidth / 2) * pixelRatio,
+      //   y: (document.documentElement.clientHeight / 2) * pixelRatio
+      // }, fontSize.big, true, render); //大きなテキストを表示
     });
 
-    // Cleanup to prevent memory leaks
     return () => {
       Render.stop(render);
       Runner.stop(Runner.create());
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', handleResize);
       Events.off(engine);
+      if (render.canvas) render.canvas.remove();
+    }
+  }, [inputQuery]);
+
+  return (<>
+    <div ref={containerRef}></div>
+    <SpeechRecognition />
+    {inputQuery && <iframe src={"https://www.google.com/search?igu=1&q=" + inputQuery} frameborder="0" scrolling='no' />}
+  </>)
+
+  // 大きな円や小さな円createCirclesの生成の部分を関数でまとめる
+  function createCircles(data, engine, render, fontSize, addSmallRectangle) {
+    // すべての感情パターンのフラットなリストを作成
+    const flattenedEmotionalPatterns = [];
+    for (let key in data.emotional_patterns) {
+      for (let innerNeed in data.emotional_patterns[key]) {
+        flattenedEmotionalPatterns.push({
+          core_desire: key,
+          inner_need: innerNeed,
+          requested_action: data.emotional_patterns[key][innerNeed]
+        });
+      }
     }
 
-  }, []); // Empty dependency array ensures this useEffect runs only once (on mount)
+    // 大きな円を追加
+    if (!bigRectangleRef.current) addBigRectangle(inputQuery, fontSize, render, engine)
 
-  return (
-    <div>
-      <h3>react-physics</h3>
-      <div ref={containerRef}></div>
-    </div>
+    // 小さな円を追加
+    let smallRectangles = [];
+    const cx = (document.documentElement.clientWidth / 2) * pixelRatio;
+    const cy = (document.documentElement.clientHeight / 2) * pixelRatio;
+    const r = document.documentElement.clientWidth / 1.5 * pixelRatio;  // ここで半径を設定します。適切な値に調整してください。
+    flattenedEmotionalPatterns.forEach((item, i) => {
+      const angle = 2 * Math.PI * i / flattenedEmotionalPatterns.length;
+      var x = cx + r * Math.cos(angle);
+      var y = cy + r * Math.sin(angle);
+      const randomOffsetX = (Math.random() - 0.5) * 500; // ランダムな数値を x および y に加えます
+      const randomOffsetY = (Math.random() - 0.5) * 500;
+      x += randomOffsetX;
+      y += randomOffsetY;
+
+      const smallRectangle = addSmallRectangle(item, fontSize, x, y, render, engine);
+      smallRectangles.push(smallRectangle);
+    });
+  }
+
+  // 大きな円を追加する関数
+  function addBigRectangle(bigRectangleText, fontSize, render, engine) {
+    const { world } = engine;
+    let bigRectangleX = (document.documentElement.clientWidth / 2) * pixelRatio;
+    let bigRectangleY = (document.documentElement.clientHeight / 2) * pixelRatio;
+    const ctx = render.context;
+    ctx.font = `Bold ${fontSize.big}px 'Noto Sans JP', sans-serif`;
+    const textMetrics = ctx.measureText(bigRectangleText);
+    const bigRectangleWidth = textMetrics.width + fontSize.big;
+    const bigRectangleHeight = 2 * (textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent); // 高さを適切に調整
+
+    bigRectangleRef.current = Bodies.rectangle(bigRectangleX, bigRectangleY, bigRectangleWidth, bigRectangleHeight, {
+      chamfer: { radius: bigRectangleHeight / 2 },
+      render: { fillStyle: 'rgba(0,0,0,0)' },
+      friction: .5
+    });
+    bigRectangleRef.current.isStatic = true;
+    World.add(world, bigRectangleRef.current);
+  }
+
+  // 小さい円を追加する関数
+  function addSmallRectangle(
+    text = {
+      core_desire: "",
+      inner_need: "",
+      requested_action: ""
+    },
+    fontSize,
+    x = ((Math.random() * 2 - 0.5) * document.documentElement.clientWidth * pixelRatio),
+    y = ((Math.random() * 2 - 0.5) * document.documentElement.clientHeight * pixelRatio),
+    render, engine
+  ) {
+    const { world } = engine;
+    const ctx = render.context;
+    const textMetrics = (() => {
+      ctx.font = `Bold ${fontSize.medium}px 'Noto Sans JP', sans-serif`;
+      const textMetrics1 = ctx.measureText(text.requested_action);
+      ctx.font = `Bold ${fontSize.small}px 'Noto Sans JP', sans-serif`;
+      const textMetrics2 = ctx.measureText(`${text.core_desire}｜${text.inner_need}`);
+      return textMetrics1.width > textMetrics2.width ? textMetrics1 : textMetrics2;
+    })();
+    const rectangleWidth = textMetrics.width + fontSize.medium * 2.5;
+    const rectangleHeight = 80 + (textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent);
+
+    const smallRectangle = Bodies.rectangle(x, y, rectangleWidth, rectangleHeight, {
+      chamfer: { radius: rectangleHeight / 2 },
+      render: { fillStyle: 'rgba(0,0,0,0)' },
+      friction: .5
+    });
+    smallRectangle.text = text;
+    smallRectangle.font = `Bold ${fontSize.medium}px 'Noto Sans JP', sans-serif`;
+
+    Body.setInertia(smallRectangle, Infinity);
+    World.add(world, smallRectangle);
+    return smallRectangle;
+  }
+}
+
+function renderText(text, position, fontSizeValue, isBold = false, render) {
+  const ctx = render.context;
+  ctx.fillStyle = "#3E6A73";
+  ctx.font = `${isBold ? 'Bold' : ''} ${fontSizeValue}px 'Noto Sans JP', sans-serif`;
+  const textMetrics = ctx.measureText(text);
+  ctx.fillText(
+    text,
+    position.x - textMetrics.width / 2,
+    position.y + (textMetrics.fontBoundingBoxAscent - textMetrics.fontBoundingBoxDescent) / 2
   );
 }

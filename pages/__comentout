@@ -1,0 +1,93 @@
+    // マウスイベントの追加
+    // const mouse = Mouse.create(render.canvas);
+    // const mouseConstraint = MouseConstraint.create(engine, {
+    //   mouse: mouse,
+    //   constraint: {
+    //     stiffness: 0.2,
+    //     render: {
+    //       visible: false
+    //     }
+    //   }
+    // });
+    // Events.on(mouseConstraint, 'mousedown', function (event) {
+    //   const mousePosition = event.mouse.position;
+    //   addSmallRectangle("Hello", fontSize, mousePosition.x, mousePosition.y, render, engine)
+    // });
+    // World.add(world, mouseConstraint);
+    
+    // ウィンドウ外に小さな円を追加する  
+    // function isWithinWindow(x, y) {
+    //   const halfWidth = document.documentElement.clientWidth * pixelRatio;
+    //   const halfHeight = document.documentElement.clientHeight * pixelRatio;
+    //   return (0 < x && x < halfWidth) && (0 < y && y < halfHeight);
+    // }
+    
+     // 小さな円を追加
+    // let smallRectangles = [];
+    // flattenedEmotionalPatterns.forEach(item => {
+    //   const smallRectangle = addSmallRectangle(item.requested_action);
+    //   smallRectangles.push(smallRectangle);
+    // });
+
+
+    // // クリックイベントを追加
+    // Events.on(mouseConstraint, 'mousedown', function (event) {
+    //   const clickedBody = event.source.body;
+    //   if (!clickedBody) return;
+
+    //   if (!clickedBody.isStatic && clickedBody !== bigRectangle) {
+    //     // 他の円と大きな円を削除
+    //     Composite.remove(world, bigRectangle);
+    //     for (let i = 0; i < smallRectangles.length; i++) {
+    //       Composite.remove(world, smallRectangles[i]);
+    //     }
+
+    //     [bigRectangle, smallRectangles] = createCircles(clickedBody);
+    //   }
+    // });
+    
+
+    // CanvasにGoogleFontを読み込む
+    // const exampleFontFamilyName = "Noto Sans JP"; // 取得したいGoogleフォント名
+    // const urlFamilyName = exampleFontFamilyName.replace(/ /g, "+"); // URLでは空白を+に置き換える
+    // const googleApiUrl = `https://fonts.googleapis.com/css?family=${urlFamilyName}`; // Google Fonts APIのURL
+    // const fetchFont = async () => {
+    //   const response = await fetch(googleApiUrl);
+    //   if (response.ok) {
+    //     // url()の中身のURLだけ抽出
+    //     const cssFontFace = await response.text();
+    //     const matchUrls = cssFontFace.match(/url\(.+?\)/g);
+    //     if (!matchUrls) throw new Error("フォントが見つかりませんでした");
+    //     for (const url of matchUrls) {
+    //       // 後は普通にFontFaceを追加
+    //       const font = new FontFace(exampleFontFamilyName, url);
+    //       await font.load();
+    //       document.fonts.add(font);
+    //     }
+    //   }
+    // }
+    // fetchFont();
+
+
+    // 壁を生成または再配置する関数
+    // var walls = [];
+    // function createOrUpdateWalls() {
+    //   const frameWidth = document.documentElement.clientWidth * pixelRatio;
+    //   const frameHeight = document.documentElement.clientHeight * pixelRatio;
+    //   const wallThickness = 100 * pixelRatio; // 壁の厚さ
+    //   const margin = wallThickness / 2;
+    //   if (walls.length === 0) {  // 初回の場合は壁を生成
+    //     walls.push(
+    //       Bodies.rectangle(frameWidth / 2, -margin, frameWidth + wallThickness * 2, wallThickness, { isStatic: true }), // 上側の壁
+    //       Bodies.rectangle(frameWidth / 2, frameHeight + margin, frameWidth + wallThickness * 2, wallThickness, { isStatic: true }), // 下側の壁
+    //       Bodies.rectangle(-margin, frameHeight / 2, wallThickness, frameHeight + wallThickness * 2, { isStatic: true }), // 左側の壁
+    //       Bodies.rectangle(frameWidth + margin, frameHeight / 2, wallThickness, frameHeight + wallThickness * 2, { isStatic: true }) // 右側の壁
+    //     );
+    //     World.add(world, walls);
+    //   } else {  // 壁がすでに存在する場合は位置を更新
+    //     Body.setPosition(walls[0], { x: frameWidth / 2, y: -margin });
+    //     Body.setPosition(walls[1], { x: frameWidth / 2, y: frameHeight + margin });
+    //     Body.setPosition(walls[2], { x: -margin, y: frameHeight / 2 });
+    //     Body.setPosition(walls[3], { x: frameWidth + margin, y: frameHeight / 2 });
+    //   }
+    // }

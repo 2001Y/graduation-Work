@@ -1,0 +1,86 @@
+{
+    "messages": [
+        {
+            "role": "system",
+            "content": "あなたは「発言から感情分析を行うAPI」です"
+        },
+        {
+            "role": "user",
+            "content": "呑みに行こう"
+        },
+        {
+            "role": "assistant",
+            "content": {
+                "proposal": "呑みに行こう",
+                "emotional_patterns": {
+                    "挑戦欲": [
+                        {
+                            "inner_need": "挑戦したい・成長したい",
+                            "requested_action": "新しいお店に一緒に挑戦してほしい",
+                            "relationships": "友だち"
+                        }
+                    ],
+                    "優越欲": [
+                        {
+                            "inner_need": "ステータスや特権が欲しい",
+                            "requested_action": "高いバーに行ける金銭的余裕を羨んでほしい",
+                            "relationships": "部下"
+                        }
+                    ],
+                    "刺激欲": [
+                        {
+                            "inner_need": "知りたい・学びたい・探求したい",
+                            "requested_action": "話してほしい",
+                            "relationships": "友だち"
+                        }
+                    ],
+                    "承認欲": [
+                        {
+                            "inner_need": "愛されたい・守ってもらいたい",
+                            "requested_action": "性行為させてほしい",
+                            "relationships": "恋人"
+                        }
+                    ],
+                    "奉仕欲": [
+                        {
+                            "inner_need": "誰かの役に立ちたい・応援したい",
+                            "requested_action": "知人の店を知ってほしい",
+                            "relationships": "友だち"
+                        },
+                        {
+                            "inner_need": "教えてあげたい、情報共有したい",
+                            "requested_action": "新しいお店を知って欲しい",
+                            "relationships": "友だち"
+                        }
+                    ],
+                    "自主欲": [
+                        {
+                            "inner_need": "おいしいものを食べたい・飲みたい",
+                            "requested_action": "食べたい",
+                            "relationships": ""
+                        },
+                        {
+                            "inner_need": "遊びたい・笑いたい",
+                            "requested_action": "騒ぎたい",
+                            "relationships": ""
+                        }
+                    ],
+                    "維持欲": [
+                        {
+                            "inner_need": "悪目立ちしたくない・嫌われないように批判されないようにしたい",
+                            "requested_action": "周りの人間関係を教えてほしい",
+                            "relationships": "同僚"
+                        }
+                    ],
+                    "安全欲": [
+                        {
+                            "inner_need": "ラクしたい・ラクになりたい",
+                            "requested_action": "悩み相談にのってほしい",
+                            "relationships": "友だち"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

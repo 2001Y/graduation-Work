@@ -23,7 +23,7 @@ export default async function handler(
 
 async function testOpenaiApiKeyOutputingJson(inputText = "", retries = 2): Promise<any> {
   const systemPrompt = `
-  心理学を用いて欲を見つけるAPI
+  あなたは心理学を用いて欲を分解するAPI
   「${inputText}」という言葉に内包された抽象的な欲求を10件程度リストアップせよ
   
   # Constraints
