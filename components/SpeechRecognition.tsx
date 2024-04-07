@@ -1,38 +1,47 @@
 import "regenerator-runtime";
 import { useEffect, useState } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
-import useStaticSWR from 'components/useStaticSWR';
+import useStaticSWR from '../components/useStaticSWR';
 
-export default () => {
+export default function SpeechRecognitionComponent() {
     const { transcript, interimTranscript, finalTranscript, resetTranscript, listening, browserSupportsSpeechRecognition, isMicrophoneAvailable } = useSpeechRecognition();
     const { data, mutate } = useStaticSWR("inputText", '');
     const [texts, setTexts] = useState([
         { position: 0, text: "０言目", key: "s6anl" },
-        { position: 1, text: "１言目", key: 'nwa54k' },
-        { position: 2, text: "２言目", key: '10jq2b' },
+        { position: 1, text: "", key: 'nwa54k' },
+        { position: 2, text: "話してみよう...", key: '10jq2b' },
         { position: 3, text: "...", key: '52twml' }
     ]);
 
     useEffect(() => {
         if (!browserSupportsSpeechRecognition) alert('ブラウザが音声認識をサポートしていません。');
         if (!isMicrophoneAvailable) alert('マイクが利用できません。');
+
+        // 自動でマイク入力を開始
+        if (browserSupportsSpeechRecognition && isMicrophoneAvailable) {
+            SpeechRecognition.startListening({
+                continuous: true,
+                language: 'ja-JP'
+            });
+        }
+
     }, [browserSupportsSpeechRecognition, isMicrophoneAvailable]);
 
     useEffect(() => handleTranscript(interimTranscript), [interimTranscript]);
     useEffect(() => handleTranscript(finalTranscript, true), [finalTranscript]);
-    useEffect(() => {
-        window.d = debugInput;
-        return () => delete window.d;
-    }, []);
 
-    function debugInput() {
-        const input = prompt();
-        if (!input) return;
-        console.log(input);
-        handleTranscript(input, true);
-    }
+    // useEffect(() => {
+    //     window.d = debugInput;
+    //     return () => delete window.d;
+    // }, []);
+    // function debugInput() {
+    //     const input = prompt();
+    //     if (!input) return;
+    //     console.log(input);
+    //     handleTranscript(input, true);
+    // }
 
-    function handleTranscript(transcript, isFinal = false) {
+    function handleTranscript(transcript: any, isFinal = false) {
         if (!transcript) return;
         const foundElement = texts.find(e => e.position === 3);
         if (foundElement) foundElement.text = transcript;
@@ -55,7 +64,7 @@ export default () => {
         }]);
     }
 
-    function adjustFontSize(element) {
+    function adjustFontSize(element: any) {
         let fontSize = parseInt(window.getComputedStyle(element, null).getPropertyValue('font-size'));
         while (element.scrollHeight > element.offsetHeight + fontSize / 2 && fontSize > 1) {
             fontSize--;
@@ -74,14 +83,14 @@ export default () => {
                     >{text.text}</p>
                 ))}
             </div>
-            {!listening && (
+            {/* {!listening && (
                 <button
                     onClick={() => SpeechRecognition.startListening({
                         continuous: true,
                         language: 'ja-JP'
                     })}
                 >開始</button>
-            )}
+            )} */}
         </>
     );
 }

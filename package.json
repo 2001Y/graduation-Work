@@ -25,5 +25,9 @@
     "sass": "^1.66.1",
     "swr": "^2.2.4",
     "typescript": "5.1.6"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.19.6",
+    "@types/react-speech-recognition": "^3.9.5"
   }
 }

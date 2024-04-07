@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { chatCompletionRequest } from "./chatCompletionRequest.ts"
 import { Conversation } from "./conversation.ts"
 

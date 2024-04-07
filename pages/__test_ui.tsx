@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import { Engine, Render, Runner, Body, MouseConstraint, Composite, Mouse, World, Bodies, Events } from 'matter-js';
 

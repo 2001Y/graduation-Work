@@ -1,8 +1,9 @@
+// @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import { Engine, Render, Runner, Body, MouseConstraint, Composite, Mouse, World, Bodies, Events } from 'matter-js';
-import SpeechRecognition from "components/SpeechRecognition"
+import SpeechRecognition from "../components/SpeechRecognition"
 import * as faceapi from 'face-api.js';
-import useStaticSWR from 'components/useStaticSWR'
+import useStaticSWR from '../components/useStaticSWR'
 
 export default function Home() {
   const [right, setRight] = useState(false);
