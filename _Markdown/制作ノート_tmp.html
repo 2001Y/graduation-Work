@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>制作ノート.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%E8%83%8C%E6%99%AF">背景</h1>
+<p>卒業制作をする上で、自分が大学の経験を通して感じたコトを作品にしたいと考えた。高校生から成人を経て、理系からデザイン系に来て、大学の4年間を通し自分が感じたコト。それは、自分の「発言に対する解釈への執着」が特異であることだった。</p>
+<h2 id="%E7%99%BA%E8%A8%80%E3%81%AB%E5%AF%BE%E3%81%99%E3%82%8B%E8%A7%A3%E9%87%88%E3%81%B8%E3%81%AE%E5%9F%B7%E7%9D%80">発言に対する解釈への執着</h2>
+<p>絶妙な言葉遣いの違いによって、言葉が表現するものは変化する。
+そして、表現されたものの解釈の違いによって誤解は生まれる。</p>
+<h2 id="%E5%91%91%E3%81%BF%E3%81%AB%E8%A1%8C%E3%81%93%E3%81%86%E3%81%AE%E9%81%95%E5%92%8C%E6%84%9F">「呑みに行こう」の違和感</h2>
+<p>この表現は1550年頃にイギリスで始まり、1800年頃には日本でも言われ始めたらしい。なぜ「ご飯行こう」ではなく「呑み行こう」なのはどうしてなのか。</p>
+<h3 id="%E9%85%92%E3%81%AE%E6%AD%B4%E5%8F%B2%E3%82%92%E7%9F%A5%E3%82%8B">酒の歴史を知る</h3>
+<p>酒（意図的に発酵させた飲料）は少なくとも新石器時代（紀元前10,000年頃）には存在していたようで、加えてアルコールを代謝する能力は人類以前から発酵した果物を食べていた時代から存在していたとされているようです。</p>
+<h3 id="50%E4%BB%A5%E4%B8%8A%E3%81%8C%E3%81%8A%E9%85%92%E3%82%92%E5%91%91%E3%82%81%E3%81%AA%E3%81%84%E3%81%AE%E3%81%AB%E5%91%91%E3%81%BF%E3%81%AB%E3%81%84%E3%81%93%E3%81%86%E3%81%AE%E9%81%95%E5%92%8C%E6%84%9F">50%以上がお酒を呑めないのに「呑みにいこう」の違和感</h3>
+<p>アルコール耐性が低いことを示す低活性型/不活性型ALDH2の人は、世界的には約8%しかいないと言われています。しかし、日本では人口の約44％が該当する言われており、これは世界で最もアルコール耐性がない国といえます。</p>
+<h3 id="%E5%90%8C%E3%81%98%E8%A8%80%E8%91%89%E3%81%AB%E5%AF%BE%E3%81%99%E3%82%8B%E5%90%8C%E6%84%8F%E3%81%A7%E3%82%82%E8%A7%A3%E9%87%88%E3%81%AE%E4%BD%99%E5%9C%B0%E3%81%AB%E3%82%88%E3%82%8A%E5%90%8C%E6%84%8F%E5%86%85%E5%AE%B9%E3%81%8C%E7%95%B0%E3%81%AA%E3%82%8B%E5%A0%B4%E5%90%88%E3%81%8C%E3%81%82%E3%82%8B">同じ言葉に対する同意でも、解釈の余地により同意内容が異なる場合がある。</h3>
+<p>2023年7月、強制性交等罪と準強制性交等罪が一本化され不同意性交等罪に改正されました。これにより&quot;同意のない性交&quot;がすべて犯罪となりました。</p>
+<h2 id="%E4%B8%87%E4%BA%BA%E5%85%B1%E9%80%9A%E3%81%AE%E8%A1%A8%E7%8F%BE%E3%81%A7%E3%81%82%E3%82%8B%E8%A8%80%E8%AA%9E%E8%A1%A8%E7%8F%BE%E3%81%AE%E5%8F%AF%E8%83%BD%E6%80%A7%E3%82%92%E5%BA%83%E3%81%92%E3%82%8B">万人共通の表現である、言語表現の可能性を広げる。</h2>
+<p>大学での4年間を経て、さまざまな表現能力を持つ人に出会って、頭では前から理解していたけれど、実際に目の前にすると驚くことはたくさんありました。</p>
+<h2 id="%E8%A8%80%E8%91%89%E3%81%AE%E8%A1%A8%E7%8F%BE%E4%BB%A5%E5%A4%96%E3%81%A7%E4%B8%80%E8%88%AC%E7%9A%84%E7%90%86%E8%A7%A3%E3%81%8C%E5%BE%97%E3%82%89%E3%82%8C%E3%82%84%E3%81%99%E3%81%84%E3%81%A7%E3%81%82%E3%82%8D%E3%81%86%E4%BA%9B%E7%B4%B0%E3%81%AA%E8%A1%A8%E7%8F%BE%E3%81%AE%E9%81%95%E3%81%84">言葉の表現以外で一般的理解が得られやすいであろう些細な表現の違い</h2>
+<h3 id="%E7%B5%B5%E6%96%87%E5%AD%97%E8%A1%A8%E7%8F%BE%E3%81%AE%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%B3%E3%82%B9%E3%81%AE%E7%95%B0%E3%81%AA%E3%82%8A">絵文字表現のニュアンスの異なり</h3>
+<p>実際にAppleの絵文字の&quot;オタク&quot;表現にメガネが採用されていることに少年がBBCを通してを示しました。</p>
+<h1 id="%E5%95%8F%E3%81%84%E3%83%BB%E7%9B%AE%E7%9A%84">問い・目的</h1>
+<h2 id="%E4%BC%9A%E8%A9%B1%E6%8B%A1%E5%BC%B5%E3%83%84%E3%83%BC%E3%83%AB%E4%BC%9A%E8%A9%B1%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8B%E3%82%81%E3%82%93%E3%81%A9%E3%81%8F%E3%81%95%E3%81%84%E3%81%AE%E6%8E%92%E9%99%A4">会話拡張ツール：会話における「めんどくさい」の排除</h2>
+<h2 id="%E7%99%BA%E8%A8%80%E3%81%8B%E3%82%89%E3%81%AE%E6%AC%B2%E6%B1%82%E5%88%86%E6%9E%90%E5%AE%A2%E8%A6%B3%E7%9A%84%E3%81%AA%E7%9B%AE%E7%B7%9A%E3%81%AE%E7%BF%92%E5%BE%97%E8%87%AA%E5%B7%B1%E7%90%86%E8%A7%A3">発言からの欲求分析：客観的な目線の習得自己理解</h2>
+<p>やりたいことは存在しない？やりたいことは無くなってきている？大きな社会課題がなくっている？</p>
+<h1 id="%E5%88%B6%E4%BD%9C">制作</h1>
+<h2 id="%E3%81%99%E3%81%B9%E3%81%A6%E3%81%AE%E7%B5%90%E6%9E%9C%E3%81%AB%E3%81%AF%E5%9B%A0%E6%9E%9C%E9%96%A2%E4%BF%82%E3%81%8C%E3%81%A4%E3%81%8F">すべての結果には因果関係がつく</h2>
+<p>ただし、意図的でなくとも、そのその要因は必ずしも自分とは限らない</p>
+<h2 id="%E7%99%BA%E8%A8%80%E3%82%92%E5%90%AB%E3%82%80%E8%A1%A8%E7%8F%BE%E3%81%AB%E3%81%AF%E8%B2%AC%E4%BB%BB%E3%81%8C%E4%BC%B4%E3%81%86">発言を含む、表現には責任が伴う</h2>
+<h2 id="ai%E3%81%AE%E6%A6%82%E8%A6%81%E7%90%86%E8%A7%A3">AIの概要理解</h2>
+<p>「これからはAIの時代だ」と言われてきましたが、やっと自分ごととして認識できるようになったのがChatGPTだと言う人も多いかと思います。</p>
+<h3 id="%E6%B7%B1%E5%B1%A4%E5%AD%A6%E7%BF%92%E3%81%AB%E3%82%88%E3%81%A3%E3%81%A6%E4%B8%8E%E3%81%88%E3%82%89%E3%82%8C%E3%81%9F%E7%9B%AE">深層学習によって与えられた「目」</h3>
+<p>2021年6月からから東京でも利用可能になったGoogle Mapsライブビューでは、スマホのカメラを向けるだけで現在地と向いている方向を特定できるGlobal Localization技術を用いて、ARナビゲーションを行なってくれます。</p>
+<h3 id="%E5%A4%A7%E8%A6%8F%E6%A8%A1%E8%A8%80%E8%AA%9E%E3%83%A2%E3%83%87%E3%83%AB%E3%81%AB%E3%82%88%E3%81%A3%E3%81%A6%E4%B8%8E%E3%81%88%E3%82%89%E3%82%8C%E3%81%9F%E8%80%B3%E3%81%A8%E9%A0%AD">大規模言語モデルによって与えられた「耳」と「頭」</h3>
+<p>音声認識</p>
+<h2 id="%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC%E3%83%BB%E3%83%9E%E3%83%AC%E3%83%BC%E3%81%AE%E6%AC%B2%E6%B1%82%E3%83%AA%E3%82%B9%E3%83%88%E3%82%92%E5%85%83%E3%81%ABmeta%E7%A4%BE%E3%81%AE%E5%A4%A7%E8%A6%8F%E6%A8%A1%E8%A8%80%E8%AA%9E%E3%83%A2%E3%83%87%E3%83%AB-llama-2-%E3%82%92%E7%94%A8%E3%81%84%E3%81%9F">ヘンリー・マレーの欲求リストを元に、Meta社の大規模言語モデル Llama 2 を用いた</h2>
+<h2 id="%E7%99%BA%E8%A8%80%E3%81%AB%E5%90%AB%E3%81%BE%E3%82%8C%E3%82%8B%E6%AC%B2%E6%9C%9B%E3%82%92%E6%AE%B5%E9%9A%8E%E7%9A%84%E3%81%AB%E7%89%B9%E5%AE%9A%E3%81%99%E3%82%8B%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E9%96%8B%E7%99%BA">発言に含まれる欲望を段階的に特定するシステムの開発</h2>
+<p>AIチャットボット「ChatGPT」などで利用されている大規模言語モデル（LLM）とは、人の脳神経細胞ネットワーク構造を再現した仕組み（人口ニューロンネットワーク）を用いた、深層学習（ディープラーニング）によって作成されています。</p>
+<h3 id="%E9%9B%BB%E9%80%9A%E3%81%AE%E6%AC%B2%E6%B1%82%E3%82%AA%E3%82%AF%E3%82%BF%E3%82%B0%E3%83%A9%E3%83%A0%E3%82%92%E5%85%83%E3%81%AB%E3%81%97%E3%81%9F">電通の欲求オクタグラムを元にした</h3>
+<p>因子分析による会話からの根本的欲求を特定するシステムの開発</p>
+<h1 id="%E5%B1%95%E7%A4%BA">展示</h1>
+<h2 id="%E4%BC%91%E6%86%A9%E3%82%B9%E3%83%9A%E3%83%BC%E3%82%B9%E3%81%AE%E6%8F%90%E4%BE%9B%E3%81%A8%E4%BC%9A%E8%A9%B1%E3%82%B5%E3%83%9D%E3%83%BC%E3%83%88%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%82%BF%E3%83%AC%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3">休憩スペースの提供と会話サポートのインスタレーション</h2>
+<p>最終展示では、休憩スペース的な役割を果たす空間を作成し、そこでの会話をリアルタイムに分析し、その結果を壁にプロジェクターで表示されることで、会話におけるできるだけ自然なサポートを行う、インスタレーションを制作したい。</p>
+
+</body>
+</html>

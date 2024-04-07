@@ -10,6 +10,7 @@ body,
   width: 100%;
   display: grid;
   place-items: center;
+  background: #FCF5EC;
 }
 
 main {
@@ -154,4 +155,39 @@ iframe {
   top: 50px;
   height: 80vh;
   width: 400px;
+}
+
+label {
+  display: flex;
+}
+
+video {
+  opacity: 0;
+  position: fixed;
+  pointer-events: none;
+}
+
+.info {
+  display: flex;
+  flex-flow: column;
+  gap: .5em;
+  position: fixed;
+  top: 1vw;
+  left: 1vw;
+  padding: 10px;
+  width: min-content;
+
+  img {
+    border-radius: 100%;
+    width: 70px !important;
+    height: 70px !important;
+    object-fit: cover;
+    background: rgba(#b6b6b6, .2);
+  }
+
+  p {
+    font-size: 1.2em;
+    text-align: center;
+  }
+
 }

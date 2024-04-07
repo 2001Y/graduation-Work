@@ -1,9 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Engine, Render, Runner, Body, MouseConstraint, Composite, Mouse, World, Bodies, Events } from 'matter-js';
 import SpeechRecognition from "components/SpeechRecognition"
+import * as faceapi from 'face-api.js';
 import useStaticSWR from 'components/useStaticSWR'
 
 export default function Home() {
+  const [right, setRight] = useState(false);
+  useEffect(() => {
+    // URLからクエリパラメータを取得
+    // useLocationを使用している場合: const query = new URLSearchParams(useLocation().search);
+    const query = new URLSearchParams(window.location.search);
+    const rightParam = query.get('right');
+
+    // 'right' パラメータが存在し、かつ '1vw' に設定されている場合、ステートを更新
+    setRight(rightParam === 'yes');
+  }, []);
+
   const pixelRatio = 2;
   const containerRef = useRef(null);
   const engineRef = useRef(null);
@@ -12,6 +24,73 @@ export default function Home() {
   const [fontSize, setFontSize] = useState(null);
   const { data: inputQuery, mutate } = useStaticSWR("inputText", '');
 
+  const videoRef = useRef();
+  const [bestDetection, setBestDetection] = useState({ age: null, gender: null, image: null });
+  useEffect(() => {
+    const loadModels = async () => {
+      const MODEL_URL = '/models';
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+    };
+    const startVideo = () => {
+      navigator.mediaDevices
+        .getUserMedia({ video: {} })
+        .then((stream) => {
+          videoRef.current.srcObject = stream;
+        })
+        .catch(err => console.error('Error starting video stream:', err));
+    };
+    loadModels().then(startVideo);
+  }, []);
+
+  const handleVideoOnPlay = () => {
+    const intervalId = setInterval(async () => {
+      if (videoRef.current) {
+        const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+          .withAgeAndGender();
+
+        const resizedDetections = faceapi.resizeResults(detections, {
+          width: videoRef.current.videoWidth,
+          height: videoRef.current.videoHeight
+        });
+
+        // 最良の検出結果を選択
+        if (resizedDetections.length > 0) {
+          const bestDetection = resizedDetections[0];
+          const age = Math.round(bestDetection.age);
+          const gender = bestDetection.gender === 'male' ? '男性' : '女性';
+
+          // 顔の切り抜き画像を作成
+          const faceCanvas = document.createElement('canvas');
+          const box = bestDetection.detection.box;
+          const padding = 0.7; // 余白の割合
+          const paddedWidth = box.width * (1 + padding);
+          const paddedHeight = box.height * (1 + padding);
+          const x = box.x - (box.width * padding) / 2;
+          const y = box.y - (box.height * padding) / 2;
+          faceCanvas.width = paddedWidth;
+          faceCanvas.height = paddedHeight;
+          faceCanvas.getContext('2d').drawImage(
+            videoRef.current,
+            x, y, paddedWidth, paddedHeight,
+            0, 0, paddedWidth, paddedHeight
+          );
+
+          // 状態を更新
+          setBestDetection({
+            age: age,
+            gender: gender,
+            image: faceCanvas.toDataURL()
+          });
+        } else {
+          // 顔が検出されない場合は情報をクリア
+          setBestDetection({ age: null, gender: null, image: null });
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(intervalId);
+  };
 
   const coreDesires = ["挑戦欲", "優越欲", "刺激欲", "承認欲", "奉仕欲", "自主欲", "維持欲", "安全欲"]
   useEffect(() => {
@@ -64,7 +143,7 @@ export default function Home() {
         width: width,
         height: height,
         wireframes: false,
-        background: '#fff'
+        background: '#FCF5EC'
       }
     });
     setRenderInstance(render);
@@ -110,8 +189,8 @@ export default function Home() {
       const outerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
 
       const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
+      gradient.addColorStop(0, 'rgba(252,245,236, 0)');
+      gradient.addColorStop(1, 'rgba(252,245,236, 1)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
     }
@@ -167,10 +246,27 @@ export default function Home() {
     }
   }, [inputQuery]);
 
+  // デバッグ用のプロンプト入力関数を追加
+  // useEffect(() => {
+  //   window.debug = () => {
+  //     const input = prompt("入力してください:");
+  //     if (input) mutate(input);
+  //   };
+  //   return () => {
+  //     delete window.debug;
+  //   };
+  // }, []);
+
+
   return (<>
     <div ref={containerRef}></div>
     <SpeechRecognition />
-    {inputQuery && <iframe src={"https://www.google.com/search?igu=1&q=" + inputQuery} frameborder="0" scrolling='no' />}
+    <video ref={videoRef} autoPlay onPlay={handleVideoOnPlay} class="video" />
+    <div class="info" style={right ? { left: "auto", right: '1vw' } : {}}>
+      {bestDetection.image && <img src={bestDetection.image} alt="Face" style={{ width: '200px', height: 'auto' }} /> || <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />}
+      <p>{bestDetection.age && bestDetection.gender && (`${bestDetection.gender} ${bestDetection.age}歳`) || "----"}</p>
+    </div>
+    {/* {inputQuery && <iframe src={"https://www.google.com/search?igu=1&q=" + inputQuery} frameborder="0" scrolling='no' />} */}
   </>)
 
   // 大きな円や小さな円createCirclesの生成の部分を関数でまとめる
