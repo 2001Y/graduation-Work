@@ -248,21 +248,21 @@ export default function Home() {
   }, [inputQuery]);
 
   // デバッグ用のプロンプト入力関数を追加
-  // useEffect(() => {
-  //   window.debug = () => {
-  //     const input = prompt("入力してください:");
-  //     if (input) mutate(input);
-  //   };
-  //   return () => {
-  //     delete window.debug;
-  //   };
-  // }, []);
+  useEffect(() => {
+    window.debug = () => {
+      const input = prompt("入力してください:");
+      if (input) mutate(input);
+    };
+    return () => {
+      delete window.debug;
+    };
+  }, []);
 
 
   return (<>
     <div ref={containerRef}></div>
     <SpeechRecognition />
-    <video ref={videoRef} autoPlay onPlay={handleVideoOnPlay} class="video" />
+    <video ref={videoRef} autoPlay onPlay={handleVideoOnPlay} className="video" />
     <div class="info" style={right ? { left: "auto", right: '1vw' } : {}}>
       {bestDetection.image && <img src={bestDetection.image} alt="Face" style={{ width: '200px', height: 'auto' }} /> || <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />}
       <p>{bestDetection.age && bestDetection.gender && (`${bestDetection.gender} ${bestDetection.age}歳`) || "----"}</p>
