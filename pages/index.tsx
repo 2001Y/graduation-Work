@@ -103,7 +103,7 @@ export default function Home() {
     coreDesires.forEach(async (desire) => {
       try {
         const response = await fetch(
-          `/api/functions_calling_example?core_desire=${desire}&input=${inputQuery}`,
+          `/api?core_desire=${desire}&input=${inputQuery}`,
           { signal: abortController.signal }
         );
         const data = await response.json();
