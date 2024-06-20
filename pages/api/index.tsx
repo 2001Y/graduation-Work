@@ -55,7 +55,7 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
                 properties: {
                     requested_actions: {
                         type: "object",
-                        properties: inner_need.reduce((acc, need) => {
+                        properties: inner_need.reduce((acc: Record<string, any>, need: string) => {
                             acc[need] = {
                                 type: "string",
                                 description: `発言「${input}」から考えられる「${need}」に基づく推測される下心と相手に求める行動`
@@ -79,15 +79,14 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
                     role: "user", content: `発言は「${input}」です。この発言を「${core_desire}」の観点から分析してください。`
                 }
             ],
-            tools: [get_requested_actions],
-            tool_choice: { "type": "function", "function": { "name": "get_requested_actions" } },
+            tools: [{ type: "function" as const, function: get_requested_actions.function }],
+            tool_choice: { type: "function" as const, function: { name: "get_requested_actions" } },
             model: "gpt-3.5-turbo",
         });
 
-        const generatedText = response.choices[0].message.tool_calls[0].function.arguments;
+        const generatedText = response.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        if (!generatedText) throw new Error("生成されたテキストが見つかりませんでした");
         emotional_patterns = JSON.parse(generatedText);
-
-        emotional_patterns.core_desire = core_desire;
         // emotional_patterns.input = input;
 
         console.log("▼ レスポンス")
