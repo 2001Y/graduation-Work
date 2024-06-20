@@ -1,4 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import OpenAI from "openai";
+import dddDesireOctagram from '../../finetuning/dddDesireOctagram.json';
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 export default async function handler(
     req: NextApiRequest,
@@ -6,62 +12,89 @@ export default async function handler(
 ) {
     const core_desire = req.query.core_desire as string;
     const input = req.query.input as string;
+    console.log("クエリ：", core_desire, input);
 
     if (!core_desire || !input) {
-        res.status(400).json({ error: 'core_desireとinputパラメータが必要です' });
+        res.status(400).json({ error: 'core_desireとinputの2つのパラメータが必要です' });
         return;
     }
 
+    const desireData = dddDesireOctagram.find(data => data.core_desire === core_desire);
+    if (!desireData) {
+        res.status(400).json({ error: '指定されたcore_desireが見つかりません' });
+        return;
+    }
+
+    const { inner_need } = desireData;
+    console.log("▼ inner_need")
+    console.dir(desireData, { depth: null });
+
+
     try {
-        let generatedText: string;
-
-        while (true) {
-            const prompt = `You are an AI assistant specializing in emotional analysis. Please analyze the following input text from the perspective of "${core_desire}", and infer the inner need and requested action.
-
-            Input: ${input}
-            Respond JSON: {
-            inner_need: {推測される内なる欲求}
-            requested_action: {推測される求められる行動}
-            }
-`;
-
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                    "HTTP-Referer": "https://2001y.me", // Optional, for including your app on openrouter.ai rankings.
-                    "X-Title": "2001Y", // Optional. Shows in rankings on openrouter.ai.
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "model": "anthropic/claude-3-sonnet-20240229",
-                    // "model": "openai/gpt-3.5-turbo",
-                    "max_tokens": 1024,
-                    "messages": [
-                        { "role": "user", "content": prompt },
-                    ],
-                })
-            });
-            const data = await response.json();
-            generatedText = data.choices[0].message.content;
-
-            try {
-                const parsedText = JSON.parse(generatedText);
-                if (parsedText.inner_need && parsedText.requested_action) {
-                    break;
-                }
-            } catch (e) {
-                // JSON parseに失敗した場合は再度リクエスト
-            }
-        }
-
-        const emotional_patterns = {
-            [core_desire]: JSON.parse(generatedText)
-        };
-
+        console.log("==================");
+        const emotional_patterns = await generateEmotionalPatterns(core_desire, inner_need, input);
         res.status(200).json({ emotional_patterns });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: `OpenRouter APIエラー: ${JSON.stringify(error)}` });
+        console.error("OpenAI APIエラー:", error);
+        res.status(500).json({ error: `OpenAI APIエラー: ${JSON.stringify(error)}` });
     }
+
 }
+
+async function generateEmotionalPatterns(core_desire: string, inner_need: string[], input: string) {
+    let response;
+    let emotional_patterns;
+
+    let get_requested_actions = {
+        type: "function",
+        function: {
+            name: "get_requested_actions",
+            description: "あなたは世界屈指の心理学APIです。",
+            parameters: {
+                type: "object",
+                properties: {
+                    requested_actions: {
+                        type: "object",
+                        properties: inner_need.reduce((acc, need) => {
+                            acc[need] = {
+                                type: "string",
+                                description: `発言「${input}」から考えられる「${need}」に基づく推測される下心と相手に求める行動`
+                            };
+                            return acc;
+                        }, {}),
+                        required: inner_need
+                    }
+                },
+            }
+        }
+    };
+
+    console.dir(get_requested_actions, { depth: null });
+
+    do {
+        response = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "あなたは世界屈指の心理学APIです。多額のチップをあげるので【発言から推測される欲】を考えてください。" },
+                {
+                    role: "user", content: `発言は「${input}」です。この発言を「${core_desire}」の観点から分析してください。`
+                }
+            ],
+            tools: [get_requested_actions],
+            tool_choice: { "type": "function", "function": { "name": "get_requested_actions" } },
+            model: "gpt-3.5-turbo",
+        });
+
+        const generatedText = response.choices[0].message.tool_calls[0].function.arguments;
+        emotional_patterns = JSON.parse(generatedText);
+
+        emotional_patterns.core_desire = core_desire;
+        // emotional_patterns.input = input;
+
+        console.log("▼ レスポンス")
+        console.dir(emotional_patterns, { depth: null });
+    } while (Object.values(emotional_patterns.requested_actions).some(action => action === ""));
+
+    return emotional_patterns;
+
+}
+

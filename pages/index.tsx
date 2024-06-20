@@ -107,7 +107,8 @@ export default function Home() {
           { signal: abortController.signal }
         );
         const data = await response.json();
-        createCircles(data, engineRef.current, renderInstance, fontSize, addSmallRectangle);
+        // console.log("APIリクエスト：", data);
+        createCircles(data.emotional_patterns, engineRef.current, renderInstance, fontSize, addSmallRectangle);
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error(error);
@@ -274,15 +275,19 @@ export default function Home() {
   function createCircles(data, engine, render, fontSize, addSmallRectangle) {
     // すべての感情パターンのフラットなリストを作成
     const flattenedEmotionalPatterns = [];
-    for (let key in data.emotional_patterns) {
-      for (let innerNeed in data.emotional_patterns[key]) {
-        flattenedEmotionalPatterns.push({
-          core_desire: key,
-          inner_need: innerNeed,
-          requested_action: data.emotional_patterns[key][innerNeed]
-        });
-      }
-    }
+    console.log("data", data)
+    data.requested_actions
+    // Object.keys(data).map(key => {
+    //   console.log("key", key);
+    Object.keys(data.requested_actions).map(innerNeed => {
+      // console.log("innerNeed", innerNeed);
+      flattenedEmotionalPatterns.push({
+        core_desire: data.core_desire,
+        inner_need: innerNeed,
+        requested_action: data.requested_actions[innerNeed]
+      });
+    });
+    // });
 
     // 大きな円を追加
     if (!bigRectangleRef.current) addBigRectangle(inputQuery, fontSize, render, engine)
@@ -292,6 +297,7 @@ export default function Home() {
     const cx = (document.documentElement.clientWidth / 2) * pixelRatio;
     const cy = (document.documentElement.clientHeight / 2) * pixelRatio;
     const r = document.documentElement.clientWidth / 1.5 * pixelRatio;  // ここで半径を設定します。適切な値に調整してください。
+    // console.log("test", flattenedEmotionalPatterns)
     flattenedEmotionalPatterns.forEach((item, i) => {
       const angle = 2 * Math.PI * i / flattenedEmotionalPatterns.length;
       var x = cx + r * Math.cos(angle);
