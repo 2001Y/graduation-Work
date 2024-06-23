@@ -4,6 +4,7 @@ import { Engine, Render, Runner, Body, MouseConstraint, Composite, Mouse, World,
 import SpeechRecognition from "../components/SpeechRecognition"
 import * as faceapi from 'face-api.js';
 import useStaticSWR from '../components/useStaticSWR'
+import Head from 'next/head';
 
 export default function Home() {
   const [right, setRight] = useState(false);
@@ -263,6 +264,11 @@ export default function Home() {
 
 
   return (<>
+    <Head>
+      <title>Motive Revealer</title>
+      <meta name="description" content="入力された文章から感情パターンを分析し、視覚化するアプリケーション" />
+      <meta name="robots" content="noindex,nofollow" />
+    </Head>
     <div ref={containerRef}></div>
     <SpeechRecognition />
     <video ref={videoRef} autoPlay onPlay={handleVideoOnPlay} className="video" />
