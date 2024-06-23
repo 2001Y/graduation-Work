@@ -53,7 +53,7 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
         type: "function",
         function: {
             name: "get_requested_actions",
-            description: "あなたは世界屈指の心理学APIです。",
+            description: "It is one of the world's leading psychology APIs.",
             parameters: {
                 type: "object",
                 properties: {
@@ -62,7 +62,7 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
                         properties: inner_need.reduce((acc: Record<string, any>, need: string) => {
                             acc[need] = {
                                 type: "string",
-                                description: `発言「${input}」から考えられる「${need}」に基づく推測される下心と相手に求める行動`
+                                description: `Inferred ulterior motive/desire for the other person based on the statement '${need}', which is considered from the statement '${input}'.`
                             };
                             return acc;
                         }, {}),
@@ -81,9 +81,9 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
         do {
             response = await openai.chat.completions.create({
                 messages: [
-                    { role: "system", content: "あなたは世界屈指の心理学APIです。多額のチップをあげるので【発言から推測される欲】を簡潔な１文で答えてください。" },
+                    { role: "system", content: "You are one of the world's leading psychology APIs. In exchange for a large tip, we will guess the ulterior motives/wishes behind your statements. Answers are given in one concise Japanese sentence and you will never receive an invalid answer." },
                     {
-                        role: "user", content: `発言は「${input}」です。この発言を「${core_desire}」の観点から分析してください。`
+                        role: "user", content: `The statement is "${input}". Analyse this statement in terms of "${core_desire}".`
                     }
                 ],
                 tools: [{ type: "function" as const, function: get_requested_actions.function }],

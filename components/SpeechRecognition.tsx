@@ -2,8 +2,10 @@ import "regenerator-runtime";
 import { useEffect, useState } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import useStaticSWR from '../components/useStaticSWR';
+import classNames from "classnames";
 
 export default function SpeechRecognitionComponent() {
+    const [isPaused, setIsPaused] = useState(false);
     const { transcript, interimTranscript, finalTranscript, resetTranscript, listening, browserSupportsSpeechRecognition, isMicrophoneAvailable } = useSpeechRecognition();
     const { data, mutate } = useStaticSWR("inputText", '');
     const [texts, setTexts] = useState([
@@ -42,6 +44,7 @@ export default function SpeechRecognitionComponent() {
     // }
 
     function handleTranscript(transcript: any, isFinal = false) {
+        if (isPaused) return; // 一時停止中は処理をスキップ
         if (!transcript) return;
         const foundElement = texts.find(e => e.position === 3);
         if (foundElement) foundElement.text = transcript;
@@ -72,6 +75,11 @@ export default function SpeechRecognitionComponent() {
         }
     }
 
+    // 一時停止ボタンのトグル関数
+    function togglePause() {
+        setIsPaused(!isPaused);
+    }
+
     return (
         <>
             <div className="speak">
@@ -83,14 +91,14 @@ export default function SpeechRecognitionComponent() {
                     >{text.text}</p>
                 ))}
             </div>
-            {/* {!listening && (
-                <button
-                    onClick={() => SpeechRecognition.startListening({
-                        continuous: true,
-                        language: 'ja-JP'
-                    })}
-                >開始</button>
-            )} */}
+            <button onClick={togglePause}
+                className={classNames(
+                    "stopButton",
+                    { "start": isPaused }
+                )}
+            >
+                {isPaused ? "スタート" : "音声認識をOFFに"}
+            </button >
         </>
     );
 }
