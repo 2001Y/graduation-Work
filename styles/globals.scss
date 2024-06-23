@@ -264,6 +264,7 @@ video {
 
   &::after {
     content: "クリックで停止";
+    color: #FF0000;
     min-width: 100%;
     white-space: nowrap;
     text-align: center;
@@ -276,6 +277,8 @@ video {
 
   &:hover {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    background: #ffe6e6;
+    border-color: #FF0000;
 
     &::before {
       opacity: 0;

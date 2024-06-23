@@ -89,7 +89,7 @@ export default function Home() {
           setBestDetection({ age: null, gender: null, image: null });
         }
       }
-    }, 100);
+    }, 100); // 1秒ごとに顔認識を行うように変更
 
     return () => clearInterval(intervalId);
   };
