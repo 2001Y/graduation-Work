@@ -23,7 +23,7 @@ export default function Home() {
   const bigRectangleRef = useRef(null);
   const [renderInstance, setRenderInstance] = useState(null);
   const [fontSize, setFontSize] = useState(null);
-  const { data: inputQuery, mutate } = useStaticSWR("inputText", '');
+  const { data: inputQuery, mutate: setInput } = useStaticSWR("inputText", '');
 
   const videoRef = useRef();
   const [bestDetection, setBestDetection] = useState({ age: null, gender: null, image: null });
@@ -93,6 +93,7 @@ export default function Home() {
     return () => clearInterval(intervalId);
   };
 
+  // 生成された感情パターンを表示する処理
   const coreDesires = ["挑戦欲", "優越欲", "刺激欲", "承認欲", "奉仕欲", "自主欲", "維持欲", "安全欲"]
   useEffect(() => {
     if (!renderInstance || !inputQuery) return;
@@ -110,9 +111,10 @@ export default function Home() {
         console.log("APIリクエスト：", data);
         createCircles(data.emotional_patterns, engineRef.current, renderInstance, fontSize, addSmallRectangle);
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-        }
+        console.error(error);
+        // if (error.name !== 'AbortError') {
+        //   console.error(error);
+        // }
       }
     });
 
@@ -252,7 +254,7 @@ export default function Home() {
   useEffect(() => {
     window.debug = () => {
       const input = prompt("入力してください:");
-      if (input) mutate(input);
+      if (input) setInput(input);
     };
     return () => {
       delete window.debug;
@@ -268,7 +270,6 @@ export default function Home() {
       {bestDetection.image && <img src={bestDetection.image} alt="Face" style={{ width: '200px', height: 'auto' }} /> || <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />}
       <p>{bestDetection.age && bestDetection.gender && (`${bestDetection.gender} ${bestDetection.age}歳`) || "----"}</p>
     </div>
-    {/* {inputQuery && <iframe src={"https://www.google.com/search?igu=1&q=" + inputQuery} frameborder="0" scrolling='no' />} */}
   </>)
 
   // 大きな円や小さな円createCirclesの生成の部分を関数でまとめる
@@ -276,9 +277,6 @@ export default function Home() {
     // すべての感情パターンのフラットなリストを作成
     const flattenedEmotionalPatterns = [];
     console.log("data", data)
-    // data.requested_actions
-    // Object.keys(data).map(key => {
-    //   console.log("key", key);
     Object.keys(data.requested_actions).map(innerNeed => {
       // console.log("innerNeed", innerNeed);
       flattenedEmotionalPatterns.push({
@@ -287,7 +285,6 @@ export default function Home() {
         requested_action: data.requested_actions[innerNeed]
       });
     });
-    // });
 
     // 大きな円を追加
     if (!bigRectangleRef.current) addBigRectangle(inputQuery, fontSize, render, engine)

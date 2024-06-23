@@ -33,14 +33,13 @@ export default async function handler(
     console.log("▼ inner_need")
     console.dir(desireData, { depth: null });
 
-
     try {
         console.log("==================");
         const emotional_patterns = await generateEmotionalPatterns(core_desire, inner_need, input);
         res.status(200).json({ emotional_patterns });
     } catch (error) {
         console.error("OpenAI APIエラー:", error);
-        res.status(500).json({ error: `OpenAI APIエラー: ${JSON.stringify(error)}` });
+        res.status(500).json({ error: error.message || 'Unknown error' });
     }
 
 }
@@ -79,33 +78,38 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
         let retryCount = 0;
         const maxRetries = 5;
         do {
-            response = await openai.chat.completions.create({
-                messages: [
-                    { role: "system", content: "You are one of the world's leading psychology APIs. In exchange for a large tip, we will guess the ulterior motives/wishes behind your statements. Answers are given in one concise Japanese sentence and you will never receive an invalid answer." },
-                    {
-                        role: "user", content: `The statement is "${input}". Analyse this statement in terms of "${core_desire}".`
+            try {
+                response = await openai.chat.completions.create({
+                    messages: [
+                        { role: "system", content: "You are one of the world's leading psychology APIs. In exchange for a large tip, we will guess the ulterior motives/wishes behind your statements. Answers are given in one concise Japanese sentence and you will never receive an invalid answer." },
+                        {
+                            role: "user", content: `The statement is "${input}". Analyse this statement in terms of "${core_desire}".`
+                        }
+                    ],
+                    tools: [{ type: "function" as const, function: get_requested_actions.function }],
+                    tool_choice: { type: "function" as const, function: { name: "get_requested_actions" } },
+                    // model: "openai/gpt-4o",
+                    model: "anthropic/claude-3.5-sonnet"
+                });
+
+                const generatedText = response.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+                if (!generatedText) throw new Error("生成されたテキストが見つかりませんでした");
+                emotional_patterns = JSON.parse(generatedText);
+
+                if (Object.values(emotional_patterns.requested_actions).some(action => action === "<UNKNOWN>")) {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        console.warn(`<UNKNOWN>が検出されました。再試行します。試行回数: ${retryCount}/${maxRetries}`);
+                    } else {
+                        console.error(`<UNKNOWN>が検出されました。最大試行回数を超えました。`);
+                        throw new Error("<UNKNOWN>が検出されました。最大試行回数を超えました。");
                     }
-                ],
-                tools: [{ type: "function" as const, function: get_requested_actions.function }],
-                tool_choice: { type: "function" as const, function: { name: "get_requested_actions" } },
-                // model: "openai/gpt-4o",
-                model: "anthropic/claude-3.5-sonnet"
-            });
-
-            const generatedText = response.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-            if (!generatedText) throw new Error("生成されたテキストが見つかりませんでした");
-            emotional_patterns = JSON.parse(generatedText);
-
-            if (Object.values(emotional_patterns.requested_actions).some(action => action === "<UNKNOWN>")) {
-                retryCount++;
-                if (retryCount < maxRetries) {
-                    console.warn(`<UNKNOWN>が検出されました。再試行します。試行回数: ${retryCount}/${maxRetries}`);
                 } else {
-                    console.error(`<UNKNOWN>が検出されました。最大試行回数を超えました。`);
-                    throw new Error("APIからの応答が不完全です。");
+                    break;
                 }
-            } else {
-                break;
+            } catch (error) {
+                console.error("OpenAI APIエラー:", error);
+                throw error; // OpenAIからのエラーをそのまま投げる
             }
         } while (retryCount < maxRetries);
         emotional_patterns.core_desire = core_desire;

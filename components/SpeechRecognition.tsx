@@ -1,19 +1,23 @@
 import "regenerator-runtime";
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import useStaticSWR from '../components/useStaticSWR';
 import classNames from "classnames";
 
 export default function SpeechRecognitionComponent() {
-    const [isPaused, setIsPaused] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
     const { transcript, interimTranscript, finalTranscript, resetTranscript, listening, browserSupportsSpeechRecognition, isMicrophoneAvailable } = useSpeechRecognition();
-    const { data, mutate } = useStaticSWR("inputText", '');
+    const { data: inputQuery, mutate: setInput } = useStaticSWR("inputText", '');
     const [texts, setTexts] = useState([
         { position: 0, text: "０言目", key: "s6anl" },
         { position: 1, text: "", key: 'nwa54k' },
-        { position: 2, text: "話してみよう...", key: '10jq2b' },
+        { position: 2, text: "あなたの発言を待っています", key: 'initialMessage' },
         { position: 3, text: "...", key: '52twml' }
     ]);
+
+    useEffect(() => {
+        if (window.navigator.connection.ethernet === 'none') alert('ネットワークに接続されていません。');
+    }, [inputQuery]);
 
     useEffect(() => {
         if (!browserSupportsSpeechRecognition) alert('ブラウザが音声認識をサポートしていません。');
@@ -32,24 +36,13 @@ export default function SpeechRecognitionComponent() {
     useEffect(() => handleTranscript(interimTranscript), [interimTranscript]);
     useEffect(() => handleTranscript(finalTranscript, true), [finalTranscript]);
 
-    // useEffect(() => {
-    //     window.d = debugInput;
-    //     return () => delete window.d;
-    // }, []);
-    // function debugInput() {
-    //     const input = prompt();
-    //     if (!input) return;
-    //     console.log(input);
-    //     handleTranscript(input, true);
-    // }
-
     function handleTranscript(transcript: any, isFinal = false) {
-        if (isPaused) return; // 一時停止中は処理をスキップ
         if (!transcript) return;
+        if (isInitializing) setIsInitializing(false);
         const foundElement = texts.find(e => e.position === 3);
         if (foundElement) foundElement.text = transcript;
         if (isFinal) {
-            mutate(transcript);
+            setInput(transcript); //確定した発言の受け渡し
             updateTexts();
             resetTranscript();
         }
@@ -75,30 +68,36 @@ export default function SpeechRecognitionComponent() {
         }
     }
 
-    // 一時停止ボタンのトグル関数
-    function togglePause() {
-        setIsPaused(!isPaused);
+    function toggleListening() {
+        if (listening) {
+            SpeechRecognition.stopListening();
+        } else {
+            SpeechRecognition.startListening({
+                continuous: true,
+                language: 'ja-JP'
+            });
+        }
+        resetTranscript();
     }
 
     return (
         <>
-            <div className="speak">
+            <div className={classNames("speak", { "initializing": !isInitializing })}>
                 {texts.map((text) => (
                     <p
                         key={text.key}
-                        className={`i_${text.position}`}
+                        className={classNames(`i_${text.position}`, text.key)}
                         ref={el => { if (el) adjustFontSize(el); }}
                     >{text.text}</p>
                 ))}
-            </div>
-            <button onClick={togglePause}
+            </div >
+            <button
+                onClick={toggleListening}
                 className={classNames(
                     "stopButton",
-                    { "start": isPaused }
+                    { "start": !listening }
                 )}
-            >
-                {isPaused ? "スタート" : "音声認識をOFFに"}
-            </button >
+            />
         </>
     );
 }
