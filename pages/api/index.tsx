@@ -37,7 +37,7 @@ export default async function handler(
         console.log("==================");
         const emotional_patterns = await generateEmotionalPatterns(core_desire, inner_need, input);
         res.status(200).json({ emotional_patterns });
-    } catch (error) {
+    } catch (error: any) {
         console.error("OpenAI APIエラー:", error);
         res.status(500).json({ error: error.message || 'Unknown error' });
     }
