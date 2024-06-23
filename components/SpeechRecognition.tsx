@@ -16,7 +16,7 @@ export default function SpeechRecognitionComponent() {
     ]);
 
     useEffect(() => {
-        if (window.navigator.connection.ethernet === 'none') alert('ネットワークに接続されていません。');
+        if (!navigator.onLine) alert('ネットワークに接続されていません。');
     }, [inputQuery]);
 
     useEffect(() => {
