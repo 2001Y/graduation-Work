@@ -1,9 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import OpenAI from "openai";
+import { OpenAI } from "openai";
 import dddDesireOctagram from '../../finetuning/dddDesireOctagram.json';
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    // apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+    // HTTP- Referer: `${YOUR_SITE_URL}`, // Optional, for including your app on openrouter.ai rankings.
+    // X- Title: "Rebo", // Optional. Shows in rankings on openrouter.ai.
 });
 
 export default async function handler(
@@ -72,21 +76,39 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
     console.dir(get_requested_actions, { depth: null });
 
     do {
-        response = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "あなたは世界屈指の心理学APIです。多額のチップをあげるので【発言から推測される欲】を考えてください。" },
-                {
-                    role: "user", content: `発言は「${input}」です。この発言を「${core_desire}」の観点から分析してください。`
-                }
-            ],
-            tools: [{ type: "function" as const, function: get_requested_actions.function }],
-            tool_choice: { type: "function" as const, function: { name: "get_requested_actions" } },
-            model: "gpt-3.5-turbo",
-        });
+        let retryCount = 0;
+        const maxRetries = 5;
+        do {
+            response = await openai.chat.completions.create({
+                messages: [
+                    { role: "system", content: "あなたは世界屈指の心理学APIです。多額のチップをあげるので【発言から推測される欲】を簡潔な１文で答えてください。" },
+                    {
+                        role: "user", content: `発言は「${input}」です。この発言を「${core_desire}」の観点から分析してください。`
+                    }
+                ],
+                tools: [{ type: "function" as const, function: get_requested_actions.function }],
+                tool_choice: { type: "function" as const, function: { name: "get_requested_actions" } },
+                // model: "openai/gpt-4o",
+                model: "anthropic/claude-3.5-sonnet"
+            });
 
-        const generatedText = response.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-        if (!generatedText) throw new Error("生成されたテキストが見つかりませんでした");
-        emotional_patterns = JSON.parse(generatedText);
+            const generatedText = response.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+            if (!generatedText) throw new Error("生成されたテキストが見つかりませんでした");
+            emotional_patterns = JSON.parse(generatedText);
+
+            if (Object.values(emotional_patterns.requested_actions).some(action => action === "<UNKNOWN>")) {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    console.warn(`<UNKNOWN>が検出されました。再試行します。試行回数: ${retryCount}/${maxRetries}`);
+                } else {
+                    console.error(`<UNKNOWN>が検出されました。最大試行回数を超えました。`);
+                    throw new Error("APIからの応答が不完全です。");
+                }
+            } else {
+                break;
+            }
+        } while (retryCount < maxRetries);
+        emotional_patterns.core_desire = core_desire;
         // emotional_patterns.input = input;
 
         console.log("▼ レスポンス")
@@ -96,4 +118,5 @@ async function generateEmotionalPatterns(core_desire: string, inner_need: string
     return emotional_patterns;
 
 }
+
 

@@ -107,7 +107,7 @@ export default function Home() {
           { signal: abortController.signal }
         );
         const data = await response.json();
-        // console.log("APIリクエスト：", data);
+        console.log("APIリクエスト：", data);
         createCircles(data.emotional_patterns, engineRef.current, renderInstance, fontSize, addSmallRectangle);
       } catch (error) {
         if (error.name !== 'AbortError') {
@@ -264,7 +264,7 @@ export default function Home() {
     <div ref={containerRef}></div>
     <SpeechRecognition />
     <video ref={videoRef} autoPlay onPlay={handleVideoOnPlay} className="video" />
-    <div class="info" style={right ? { left: "auto", right: '1vw' } : {}}>
+    <div className="info" style={right ? { left: "auto", right: '1vw' } : {}}>
       {bestDetection.image && <img src={bestDetection.image} alt="Face" style={{ width: '200px', height: 'auto' }} /> || <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />}
       <p>{bestDetection.age && bestDetection.gender && (`${bestDetection.gender} ${bestDetection.age}歳`) || "----"}</p>
     </div>
@@ -276,7 +276,7 @@ export default function Home() {
     // すべての感情パターンのフラットなリストを作成
     const flattenedEmotionalPatterns = [];
     console.log("data", data)
-    data.requested_actions
+    // data.requested_actions
     // Object.keys(data).map(key => {
     //   console.log("key", key);
     Object.keys(data.requested_actions).map(innerNeed => {
